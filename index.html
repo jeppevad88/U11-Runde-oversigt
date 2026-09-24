@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>U11 Holdfordeler · Hjallerup</title>
+<style>
+:root{--green:#43a52d;--blue:#08a9df;--bg:#f4f6f8;--card:#fff;--text:#18212b;--muted:#66717d;--line:#dfe5ea;--danger:#d9363e;--shadow:0 4px 18px rgba(20,35,50,.08)}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+header{background:linear-gradient(135deg,#43a52d,#23851b);color:#fff;padding:18px 20px;position:sticky;top:0;z-index:20;box-shadow:0 3px 12px #0002}
+.header-inner{max-width:1400px;margin:auto;display:flex;gap:18px;align-items:center;justify-content:space-between}
+h1{font-size:26px;margin:0}.sub{opacity:.9;margin-top:3px;font-size:13px}
+.status{background:#ffffff22;border:1px solid #ffffff40;border-radius:999px;padding:7px 11px;font-size:12px;white-space:nowrap}
+main{max-width:1400px;margin:auto;padding:16px}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+button,select,input{font:inherit} button{border:0;border-radius:9px;padding:9px 12px;cursor:pointer;background:#fff;border:1px solid var(--line);color:var(--text)}
+button:hover{filter:brightness(.98)} button.primary{background:#1f2937;color:#fff;border-color:#1f2937} button.danger{color:#b4232a} button.small{padding:6px 9px;font-size:12px}
+.round-tabs{display:flex;gap:6px;overflow:auto;padding:3px 0 12px;position:sticky;top:84px;background:var(--bg);z-index:10}
+.round-tabs button{min-width:68px;font-weight:700}.round-tabs button.active{background:#1f2937;color:white}
+.notice{background:#fff;border:1px solid var(--line);border-left:4px solid var(--blue);padding:10px 13px;border-radius:9px;margin-bottom:14px;font-size:13px}
+.round-head{display:flex;align-items:end;justify-content:space-between;gap:10px;margin:8px 0 14px}.round-head h2{margin:0}.muted{color:var(--muted);font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(390px,1fr));gap:14px}
+.team-card{background:var(--card);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;border:1px solid var(--line)}
+.team-head{padding:12px 14px;color:white;display:flex;justify-content:space-between;align-items:center}
+.team-title{font-weight:800;font-size:18px}.badge{font-size:11px;font-weight:800;background:#fff3;padding:5px 8px;border-radius:999px}
+.match{padding:10px 14px;border-bottom:1px solid var(--line);font-size:13px}.match strong{font-size:15px}.match .meta{display:flex;gap:8px;flex-wrap:wrap;color:var(--muted);margin-top:4px}
+.roster{padding:12px 14px}.section-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:800;margin:0 0 7px}
+.slots{display:grid;grid-template-columns:1fr 1fr;gap:8px}.slot{border:1px dashed #c9d2da;border-radius:10px;padding:8px;min-height:45px;background:#fbfcfd}
+.slot.gk{grid-column:1/-1;border-style:solid;background:#fff9ed}.slot-title{font-size:11px;font-weight:800;color:var(--muted);margin-bottom:4px}.slot-player{display:flex;align-items:center;justify-content:space-between;gap:6px;font-weight:700}
+.player-actions{display:flex;gap:4px}.iconbtn{padding:3px 6px;border-radius:6px;font-size:12px}
+.roster-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin-top:10px}
+.player-row{display:flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:8px;padding:6px 7px;background:#fff;font-size:13px}
+.player-row input{accent-color:#1f2937}.player-row .name{flex:1}.absent{opacity:.45;text-decoration:line-through}
+.addbar{display:flex;gap:6px;margin-top:9px}.addbar select,.addbar input{flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;padding:7px;background:#fff}
+.extra{margin-top:9px;padding-top:8px;border-top:1px solid var(--line)}.extra-item{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:13px}
+.count{font-weight:800}.warning{margin-top:8px;background:#fff3cd;border:1px solid #ffe69c;color:#664d03;border-radius:8px;padding:7px;font-size:12px}
+.summary{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:780px}th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;font-size:13px}th{background:#f1f4f6;font-size:12px;text-transform:uppercase;color:var(--muted)}tr:last-child td{border-bottom:0}.other{display:flex;gap:4px;flex-wrap:wrap}.pill{border-radius:999px;padding:3px 7px;background:#eef2f5;font-size:11px;font-weight:700}
+.footer-note{margin:15px 0;color:var(--muted);font-size:12px}
+@media(max-width:600px){h1{font-size:21px}.header-inner{align-items:flex-start}.status{font-size:11px}.grid{grid-template-columns:1fr}.roster-list{grid-template-columns:1fr}.round-tabs{top:73px}.slots{grid-template-columns:1fr}.slot.gk{grid-column:auto}}
+</style>
+</head>
+<body>
+<header><div class="header-inner"><div><h1>🏐 U11 Holdfordeler</h1><div class="sub">Hjallerup IF · efterår 2026 · fælles kampplan</div></div><div id="saveStatus" class="status">Henter fælles data…</div></div></header>
+<main>
+<div class="toolbar">
+  <button class="primary" id="refreshBtn">↻ Hent seneste data</button>
+  <button id="clearRoundBtn">Nulstil vist runde</button>
+  <span class="muted">Ændringer gemmes automatisk og deles mellem alle, der bruger siden.</span>
+</div>
+<div class="notice"><strong>8 spillere pr. hold:</strong> højst 1 målmand + højst 7 markspillere. De faste spillere fra holdlisten er lagt ind som udgangspunkt. Fjern en spiller med fluebenet, eller tilføj en ekstra/lånt spiller. <strong>Samme spiller må gerne spille på flere hold i samme runde</strong>, også samme dag, så længe kampene ikke overlapper. En kamp regnes som 40 minutter.</div>
+<div id="tabs" class="round-tabs"></div>
+<div id="app"></div>
+</main>
+<script src="./data.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./supabase-config.js"></script>
+<script>
+const DATA=window.APP_DATA;
+const teamIds=Object.keys(DATA.teams);
+let state={rounds:{},updatedAt:null};
+let lastServerUpdate=null;
+let currentRound=1;
+let saveTimer=null, saving=false;
+
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function teamLabel(id){return DATA.teams[id]?.name||'Hold '+id;}
+function matchesForRound(r){return DATA.matches.filter(m=>m.round===r);}
+function teamsForRound(r){return [...new Set(matchesForRound(r).map(m=>m.team).filter(Boolean))];}
+function initialRound(r){
+  const out={};
+  teamsForRound(r).forEach(t=>{
+    out[t]={included:[...DATA.teams[t].players], positions:{}, extras:[]};
+  });
+  return out;
+}
+function ensureRound(r){
+  if(!state.rounds[r]) state.rounds[r]=initialRound(r);
+  teamsForRound(r).forEach(t=>{
+    if(!state.rounds[r][t]) state.rounds[r][t]={included:[...DATA.teams[t].players],positions:{},extras:[]};
+    const x=state.rounds[r][t]; x.included=x.included||[]; x.positions=x.positions||{}; x.extras=x.extras||[];
+  });
+}
+function allKnownPlayers(){return teamIds.flatMap(t=>DATA.teams[t].players).filter((v,i,a)=>a.indexOf(v)===i).sort((a,b)=>a.localeCompare(b,'da'))}
+function getSelected(t){const x=state.rounds[currentRound][t]; return [...x.included,...x.extras.map(e=>e.name)];}
+function positionOf(t,name){return state.rounds[currentRound][t].positions[name]||'FIELD'}
+function setPosition(t,name,pos){
+  const x=state.rounds[currentRound][t];
+  if(pos==='GK'){
+    const existing=Object.entries(x.positions).find(([n,p])=>p==='GK'&&n!==name);
+    if(existing) delete x.positions[existing[0]];
+  }
+  x.positions[name]=pos;
+}
+function matchDateTime(m){
+  const [d,mo,y]=m.date.split('-').map(Number);
+  const [h,min]=m.time.split(':').map(Number);
+  return new Date(y,mo-1,d,h,min).getTime();
+}
+function matchEnd(m){ return matchDateTime(m)+40*60*1000; }
+function overlaps(a,b){
+  if(!a||!b||a.date!==b.date) return false;
+  const as=matchDateTime(a), ae=matchEnd(a), bs=matchDateTime(b), be=matchEnd(b);
+  return as<be && bs<ae;
+}
+function overlappingPlayersForTeam(r,t){
+  const conflicts={};
+  const rr=state.rounds[r]||{};
+  const own=matchesForRound(r).find(m=>m.team===t);
+  if(!own) return conflicts;
+  const selected=[...(rr[t]?.included||[]),...(rr[t]?.extras||[]).map(e=>e.name)];
+  Object.entries(rr).forEach(([otherTeam,x])=>{
+    if(otherTeam===t) return;
+    const other=matchesForRound(r).find(m=>m.team===otherTeam);
+    if(!other||!overlaps(own,other)) return;
+    const otherPlayers=[...(x.included||[]),...(x.extras||[]).map(e=>e.name)];
+    selected.forEach(n=>{
+      if(otherPlayers.includes(n)) conflicts[n]=conflicts[n]||[];
+      if(otherPlayers.includes(n) && !conflicts[n].includes(otherTeam)) conflicts[n].push(otherTeam);
+    });
+  });
+  return conflicts;
+}
+function totalSummary(){
+  const map={};
+  allKnownPlayers().forEach(n=>map[n]={name:n,original:DATA.teams[teamIds.find(t=>DATA.teams[t].players.includes(n))]?.name||'—',total:0,borrowed:0,other:{}});
+  for(let r=1;r<=10;r++){
+    const rr=state.rounds[r]||{};
+    Object.entries(rr).forEach(([t,x])=>{
+      const team=teamLabel(t);
+      const add=(n,isExtra)=>{
+        if(!map[n]) map[n]={name:n,original:'Ekstra',total:0,borrowed:0,other:{}};
+        map[n].total++; if(isExtra) map[n].borrowed++;
+        if(map[n].original!==team) map[n].other[team]=(map[n].other[team]||0)+1;
+      };
+      (x.included||[]).forEach(n=>add(n,false)); (x.extras||[]).forEach(e=>add(e.name,true));
+    });
+  }
+  return Object.values(map).sort((a,b)=>a.name.localeCompare(b.name,'da'));
+}
+function renderTabs(){
+  const tabs=document.getElementById('tabs');
+  tabs.innerHTML=Array.from({length:10},(_,i)=>`<button class="${currentRound===i+1?'active':''}" onclick="goRound(${i+1})">Runde ${i+1}</button>`).join('')+
+    `<button class="${currentRound===0?'active':''}" onclick="goSummary()">📊 Samlet oversigt</button>`;
+}
+function render(){
+  renderTabs();
+  if(currentRound===0){renderSummary();return;}
+  ensureRound(currentRound);
+  const ms=matchesForRound(currentRound), ts=teamsForRound(currentRound);
+  const dates=[...new Set(ms.map(m=>m.date))].join(' · ');
+  document.getElementById('app').innerHTML=`<div class="round-head"><div><h2>Runde ${currentRound}</h2><div class="muted">${esc(dates)} · ${ts.length} Hjallerup-hold i kamp</div></div></div><div class="grid">${ts.map(renderTeamCard).join('')}</div>`;
+}
+function renderTeamCard(t){
+  const team=DATA.teams[t], x=state.rounds[currentRound][t];
+  const m=matchesForRound(currentRound).find(z=>z.team===t);
+  const selected=[...x.included,...x.extras.map(e=>e.name)];
+  const gk=selected.find(n=>positionOf(t,n)==='GK');
+  const fields=selected.filter(n=>positionOf(t,n)!=='GK');
+  const over=selected.length>8 || fields.length>7;
+  const counts=countsInRound(currentRound);
+  const conflicts=overlappingPlayersForTeam(currentRound,t);
+  const roster=team.players.map(n=>`<label class="player-row ${x.included.includes(n)?'':'absent'}"><input type="checkbox" ${x.included.includes(n)?'checked':''} onchange="togglePlayer('${t}',${JSON.stringify(n)},this.checked)"><span class="name">${esc(n)}</span>${positionOf(t,n)==='GK'?'<span title="Målmand">🧤</span>':''}</label>`).join('');
+  const extras=x.extras.map((e,i)=>`<div class="extra-item"><span><strong>${esc(e.name)}</strong> <span class="muted">(${e.source==='roster'?'lånt':'ekstra'})</span></span><span class="player-actions"><button class="iconbtn" onclick="cyclePos('${t}',${JSON.stringify(e.name)})">${positionOf(t,e.name)==='GK'?'🧤':'🏃'}</button><button class="iconbtn danger" onclick="removeExtra('${t}',${i})">✕</button></span></div>`).join('');
+  function slot(name,type){return `<div class="slot ${type==='GK'?'gk':''}"><div class="slot-title">${type==='GK'?'🧤 MÅLMAND':'🏃 MARKSPILLER'}</div>${name?`<div class="slot-player"><span>${esc(name)}</span><span class="player-actions"><button class="iconbtn" onclick="cyclePos('${t}',${JSON.stringify(name)})">${type==='GK'?'↩':'🧤'}</button></span></div>`:'<span class="muted">Ledig plads</span>'}</div>`}
+  const fieldSlots=Array.from({length:7},(_,i)=>slot(fields[i],'FIELD')).join('');
+  return `<section class="team-card"><div class="team-head" style="background:${team.color}"><div class="team-title">${esc(team.name)}</div><span class="badge">U11 · ${team.level}</span></div>
+  <div class="match"><strong>${esc(m.home)} – ${esc(m.away)}</strong><div class="meta"><span>📅 ${esc(m.day)} ${esc(m.date)}</span><span>⏰ ${esc(m.time)}</span><span>📍 ${esc(m.venue)}</span></div></div>
+  <div class="roster"><div class="section-title">Kampens 8 pladser · ${selected.length}/8</div><div class="slots">${slot(gk,'GK')}${fieldSlots}</div>
+  <div class="section-title" style="margin-top:12px">Fast holdliste</div><div class="roster-list">${roster}</div>
+  <div class="extra"><div class="section-title">Ekstra / lånte spillere</div>${extras||'<div class="muted">Ingen endnu</div>'}
+  <div class="addbar"><select id="sel-${t}"><option value="">Vælg spiller…</option>${allKnownPlayers().map(n=>`<option>${esc(n)}</option>`).join('')}</select><button class="small" onclick="addExisting('${t}')">+ Tilføj</button></div>
+  <div class="addbar"><input id="new-${t}" placeholder="Ny gæst/ekstra spiller"><button class="small" onclick="addNew('${t}')">+ Gæst</button></div>
+  ${over?'<div class="warning">⚠️ Holdet har mere end 8 spillere / mere end 7 markspillere.</div>':''}
+  ${Object.keys(conflicts).length?`<div class="warning">⚠️ <strong>Kampe overlapper:</strong> ${Object.entries(conflicts).map(([n,teams])=>`${esc(n)} (${teams.map(teamLabel).join(', ')})`).join(' · ')}. En kamp varer 40 minutter, så spilleren kan ikke nå begge.</div>`:''}
+  </div></div></section>`;
+}
+function renderSummary(){
+  const rows=totalSummary().map(p=>`<tr><td><strong>${esc(p.name)}</strong></td><td>${esc(p.original)}</td><td class="count">${p.total}</td><td>${p.borrowed}</td><td><div class="other">${Object.entries(p.other).map(([t,n])=>`<span class="pill">${esc(t)} · ${n}×</span>`).join('')||'—'}</div></td></tr>`).join('');
+  document.getElementById('app').innerHTML=`<div class="round-head"><div><h2>📊 Samlet oversigt</h2><div class="muted">Baseret på alle 10 runder og de aktuelle kamptrupper.</div></div></div><div class="summary"><table><thead><tr><th>Spiller</th><th>Fast hold</th><th>Antal kampe</th><th>Heraf lånt/ekstra</th><th>Brugt på andre hold</th></tr></thead><tbody>${rows}</tbody></table></div><div class="footer-note">Tallene ændrer sig automatisk, når kamptrupperne ændres. En spiller tælles én gang pr. hold pr. runde.</div>`;
+}
+async function ensureAuth(){
+  if(!window.SUPABASE_CONFIG?.url || !window.SUPABASE_CONFIG?.publishableKey) throw new Error('Supabase er ikke konfigureret.');
+  window.supabaseClient=window.supabase.createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.publishableKey);
+  const {data:{session}}=await window.supabaseClient.auth.getSession();
+  if(!session){
+    const {error}=await window.supabaseClient.auth.signInAnonymously();
+    if(error) throw error;
+  }
+}
+async function readShared(){
+  const {data,error}=await window.supabaseClient.from('u11_state').select('state,updated_at').eq('id','main').maybeSingle();
+  if(error) throw error;
+  return data;
+}
+async function load(){
+  setStatus('Forbinder til fælles database…');
+  try{
+    await ensureAuth();
+    const d=await readShared();
+    const incoming=d?.state;
+    state=incoming&&incoming.rounds?incoming:{rounds:{},updatedAt:null};
+    for(let rno=1;rno<=10;rno++) ensureRound(rno);
+    lastServerUpdate=d?.updated_at||state.updatedAt||null;
+    render(); setStatus(lastServerUpdate?'Sidst gemt '+new Date(lastServerUpdate).toLocaleTimeString('da-DK'):'Klar · grunddata indlæst');
+  }catch(e){
+    console.error(e); state={rounds:{},updatedAt:null}; for(let rno=1;rno<=10;rno++) ensureRound(rno);
+    render(); setStatus('Database ikke klar – se opsætningen i README');
+  }
+}
+async function poll(){
+  if(!window.supabaseClient||saving||saveTimer)return;
+  try{
+    const d=await readShared();
+    if(d?.updated_at && d.updated_at!==lastServerUpdate){
+      state=d.state||{rounds:{},updatedAt:null}; lastServerUpdate=d.updated_at; for(let rno=1;rno<=10;rno++) ensureRound(rno); render();
+      setStatus('Opdateret fra fælles database · '+new Date(d.updated_at).toLocaleTimeString('da-DK'));
+    }
+  }catch(e){console.warn(e)}
+}
+setInterval(poll,7000);
+function setStatus(s){document.getElementById('saveStatus').textContent=s}
+function saveSoon(){clearTimeout(saveTimer);setStatus('Gemmer…');saveTimer=setTimeout(save,450)}
+async function save(){
+  if(saving)return; saving=true;
+  try{
+    state.updatedAt=new Date().toISOString();
+    const {data,error}=await window.supabaseClient.from('u11_state').upsert({id:'main',state:state,updated_at:state.updatedAt},{onConflict:'id'}).select('updated_at').single();
+    if(error) throw error;
+    lastServerUpdate=data.updated_at; state.updatedAt=data.updated_at; setStatus('Gemt · '+new Date(data.updated_at).toLocaleTimeString('da-DK'));
+  }catch(e){console.error(e);setStatus('Kunne ikke gemme – kontrollér Supabase-opsætningen');}
+  finally{saving=false}
+}
+function goRound(r){currentRound=r;render()}
+function goSummary(){currentRound=0;render()}
+function togglePlayer(t,n,on){
+  const x=state.rounds[currentRound][t];
+  if(on){if(!x.included.includes(n))x.included.push(n)} else {x.included=x.included.filter(v=>v!==n);delete x.positions[n]}
+  render();saveSoon();
+}
+function cyclePos(t,n){
+  const x=state.rounds[currentRound][t];
+  if(positionOf(t,n)==='GK') setPosition(t,n,'FIELD'); else setPosition(t,n,'GK');
+  render();saveSoon();
+}
+function addExisting(t){
+  const sel=document.getElementById('sel-'+t), n=sel.value;if(!n)return;
+  const x=state.rounds[currentRound][t];
+  if(x.included.includes(n)||x.extras.some(e=>e.name===n)){alert('Spilleren er allerede på dette hold i denne runde.');return}
+  x.extras.push({name:n,source:'roster'});render();saveSoon();
+}
+function addNew(t){
+  const el=document.getElementById('new-'+t),n=el.value.trim();if(!n)return;
+  const x=state.rounds[currentRound][t];
+  if([...x.included,...x.extras.map(e=>e.name)].includes(n)){alert('Spilleren er allerede på dette hold i denne runde.');return}
+  x.extras.push({name:n,source:'guest'});render();saveSoon();
+}
+function removeExtra(t,i){state.rounds[currentRound][t].extras.splice(i,1);render();saveSoon()}
+document.getElementById('refreshBtn').onclick=load;
+document.getElementById('clearRoundBtn').onclick=()=>{
+  if(!confirm('Nulstil alle kamptrupper i den viste runde?'))return;
+  state.rounds[currentRound]=initialRound(currentRound);render();saveSoon();
+};
+load();
+</script>
+</body></html>
