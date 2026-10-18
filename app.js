@@ -81,7 +81,10 @@ async function loadIcalSchedule(){
       if(!events.length) throw new Error(`Ingen kampe fundet i kalenderen for ${calendar.teamId}`);
       return events;
     });
-    const byTeam=Object.fromEntries(results.flat().reduce((acc,m)=>{(acc[m.teamId] ||= []).push(m);return acc;},Object.create(null)));
+    const byTeam = results.flat().reduce((acc, m) => {
+  (acc[m.teamId] ||= []).push(m);
+  return acc;
+}, Object.create(null));
     Object.values(byTeam).forEach(list=>list.sort((a,b)=>a._sort-b._sort));
     const maxRounds=Math.max(...Object.values(byTeam).map(list=>list.length));
     const rounds=[];
