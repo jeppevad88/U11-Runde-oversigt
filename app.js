@@ -1,20 +1,20 @@
-// Hent kampprogrammet direkte fra Dansk Håndbolds iCal-kalendere.
-// Hvis en kalender ikke kan hentes (fx pga. netværk/CORS), beholdes de indbyggede kampe.
+// Hent kampprogrammet via Supabase Edge Function.
+// Browseren kan ikke nødvendigvis hente Dansk Håndbolds iCal-filer direkte (CORS).
 const ICAL_FEEDS = [
-  {teamId:"hold1", url:"https://ical.danskhaandbold.dk/Holdkampprogram.ashx?key=3588ee60-4621-44d7-b915-ce6ae0442a58"},
-  {teamId:"hold2", url:"https://ical.danskhaandbold.dk/Holdkampprogram.ashx?key=ace2b6f0-46aa-4d8c-96a8-f0c5ee3efea8"},
-  {teamId:"hold3", url:"https://ical.danskhaandbold.dk/Holdkampprogram.ashx?key=8d5bdfc1-7f7d-454b-86ae-39517685ed75"},
-  {teamId:"hold4", url:"https://ical.danskhaandbold.dk/Holdkampprogram.ashx?key=ae395343-6ef0-4487-919b-ab5289d5dba6"},
-  {teamId:"hold5", url:"https://ical.danskhaandbold.dk/Holdkampprogram.ashx?key=5f889c0e-c268-4671-85d9-00b550e1d76b"},
-  {teamId:"hold6", url:"https://ical.danskhaandbold.dk/Holdkampprogram.ashx?key=b0f9f037-8c80-4ad0-b85a-a5bc8b4adc18"},
-  {teamId:"hold7", url:"https://ical.danskhaandbold.dk/Holdkampprogram.ashx?key=3dc46250-94eb-4b52-ab20-b9d6a58ae7c8"}
+  {teamId:"hold1"},
+  {teamId:"hold2"},
+  {teamId:"hold3"},
+  {teamId:"hold4"},
+  {teamId:"hold5"},
+  {teamId:"hold6"},
+  {teamId:"hold7"}
 ];
 
-function unfoldIcal(text){
-  return text.replace(/\r?\n[ \t]/g, "").split(/\r?\n/);
-}
 function unescapeIcal(value=""){
   return String(value).replace(/\\n/gi," ").replace(/\\,/g,",").replace(/\\;/g,";").replace(/\\\\/g,"\\").trim();
+}
+function unfoldIcal(text){
+  return text.replace(/\r?\n[ \t]/g, "").split(/\r?\n/);
 }
 function parseIcalDate(value, params=""){
   if(!value) return null;
@@ -23,13 +23,17 @@ function parseIcalDate(value, params=""){
   if(!match) return null;
   const [,ys,mos,ds,hs="00",mis="00",ss="00",z] = match;
   const y=Number(ys), mo=Number(mos)-1, d=Number(ds), h=Number(hs), mi=Number(mis), s=Number(ss);
-  // iCal tider med Z er UTC; tider med TZID (eller uden tidszone) er lokal dansk tid.
   if(z){
-    const dt=new Date(Date.UTC(y,mo,d,h,mi,s));
-    return {date:`${String(dt.getDate()).padStart(2,"0")}-${String(dt.getMonth()+1).padStart(2,"0")}-${dt.getFullYear()}`, time:`${String(dt.getHours()).padStart(2,"0")}:${String(dt.getMinutes()).padStart(2,"0")}`, sort:dt.getTime()};
+    // iCal UTC-tider konverteres til dansk lokal tid med Intl, så datoen ikke forskydes.
+    const utc=new Date(Date.UTC(y,mo,d,h,mi,s));
+    const parts=new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Copenhagen",day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(utc);
+    const part=Object.fromEntries(parts.map(p=>[p.type,p.value]));
+    const localDate=`${part.day}-${part.month}-${part.year}`;
+    const localTime=`${part.hour}:${part.minute}`;
+    return {date:localDate,time:localTime,sort:utc.getTime()};
   }
   const dt=new Date(y,mo,d,h,mi,s);
-  return {date:`${String(d).padStart(2,"0")}-${String(mo+1).padStart(2,"0")}-${y}`, time:`${String(h).padStart(2,"0")}:${String(mi).padStart(2,"0")}`, sort:dt.getTime()};
+  return {date:`${String(d).padStart(2,"0")}-${String(mo+1).padStart(2,"0")}-${y}`,time:`${String(h).padStart(2,"0")}:${String(mi).padStart(2,"0")}`,sort:dt.getTime()};
 }
 function parseIcalEvents(text, teamId){
   const lines=unfoldIcal(text);
@@ -40,14 +44,13 @@ function parseIcalEvents(text, teamId){
       if(event?.start && event?.summary){
         const summary=unescapeIcal(event.summary);
         const parts=summary.split(/\s+(?:-|–|—|mod)\s+/i).map(x=>x.trim()).filter(Boolean);
-        const teamName=({hold1:"Hjallerup IF 1",hold2:"Hjallerup IF 2",hold3:"Hjallerup IF 3",hold4:"Hjallerup IF 4",hold5:"Hjallerup IF 5",hold6:"Hjallerup IF 6",hold7:"Hjallerup IF 7"})[teamId];
         let home=parts[0]||summary, away=parts.slice(1).join(" - ")||"Modstander";
         if(parts.length>1 && !home.toLowerCase().includes("hjallerup") && away.toLowerCase().includes("hjallerup")){const tmp=home;home=away;away=tmp;}
-        // Brug kalenderens titel, men sørg for at hjemme-/udehold ikke bliver tomme.
-        events.push({teamId, time:event.start.time, date:event.start.date, _sort:event.start.sort,
-          home, away, venue:unescapeIcal(event.location||""), day:new Intl.DateTimeFormat("da-DK",{weekday:"short"}).format(new Date(event.start.sort)).replace(".","").slice(0,3),
-          matchNo:(`${event.description||""} ${event.url||""}`).match(/(?:kamp(?:nr|nummer)?\s*[:#]?\s*)(\d{5,})/i)?.[1] || event.uid || `${teamId}-${event.start.sort}`,
-          _calendarTeamName:teamName});
+        const start=event.start;
+        events.push({teamId,time:start.time,date:start.date,_sort:start.sort,
+          home,away,venue:unescapeIcal(event.location||""),
+          day:new Intl.DateTimeFormat("da-DK",{weekday:"short",timeZone:"Europe/Copenhagen"}).format(new Date(start.sort)).replace(".","").slice(0,3),
+          matchNo:(`${event.description||""} ${event.url||""}`).match(/(?:kamp(?:nr|nummer)?\s*[:#]?\s*)(\d{5,})/i)?.[1] || event.uid || `${teamId}-${start.sort}`});
       }
       event=null; continue;
     }
@@ -66,18 +69,19 @@ function parseIcalEvents(text, teamId){
 }
 async function loadIcalSchedule(){
   try{
-    const results=await Promise.all(ICAL_FEEDS.map(async feed=>{
-      const response=await fetch(feed.url,{cache:"no-store"});
-      if(!response.ok) throw new Error(`Kalender for ${feed.teamId} kunne ikke hentes (${response.status})`);
-      const text=await response.text();
-      if(!text.includes("BEGIN:VCALENDAR")) throw new Error(`Ugyldigt iCal-format for ${feed.teamId}`);
-      const events=parseIcalEvents(text,feed.teamId);
-      if(!events.length) throw new Error(`Ingen kampe fundet i kalenderen for ${feed.teamId}`);
+    if(!sb) throw new Error("Supabase er ikke initialiseret");
+    // Timeout sikrer, at resten af hjemmesiden stadig åbner, hvis importen fejler.
+    const result=await withTimeout(sb.functions.invoke("u11-ical-sync"),15000);
+    if(result.error) throw result.error;
+    const calendars=result.data?.calendars;
+    if(!Array.isArray(calendars) || calendars.length!==7) throw new Error("iCal-funktionen returnerede ikke alle syv kalendere");
+    const results=calendars.map(calendar=>{
+      if(typeof calendar.ical!=="string" || !calendar.ical.includes("BEGIN:VCALENDAR")) throw new Error(`Ugyldig kalender for ${calendar.teamId}`);
+      const events=parseIcalEvents(calendar.ical,calendar.teamId);
+      if(!events.length) throw new Error(`Ingen kampe fundet i kalenderen for ${calendar.teamId}`);
       return events;
-    }));
+    });
     const byTeam=Object.fromEntries(results.flat().reduce((acc,m)=>{(acc[m.teamId] ||= []).push(m);return acc;},Object.create(null)));
-    // Runde 1 er hvert holds første kamp, runde 2 hvert holds anden kamp osv.
-    // Dermed bevares den eksisterende runde-/spillerstruktur og holdenes data.
     Object.values(byTeam).forEach(list=>list.sort((a,b)=>a._sort-b._sort));
     const maxRounds=Math.max(...Object.values(byTeam).map(list=>list.length));
     const rounds=[];
@@ -85,7 +89,7 @@ async function loadIcalSchedule(){
       const matches=[];
       for(const feed of ICAL_FEEDS){
         const m=byTeam[feed.teamId]?.[i];
-        if(m){const { _sort, _calendarTeamName, ...clean }=m; matches.push(clean);}
+        if(m){const {_sort,...clean}=m;matches.push(clean);}
       }
       rounds.push({round:i+1,matches});
     }
@@ -98,7 +102,6 @@ async function loadIcalSchedule(){
     window.__ICAL_SCHEDULE_ERROR__=error?.message || "Ukendt fejl ved iCal-import";
   }
 }
-
 
 let sb = null;
 let supabaseInitError = null;
