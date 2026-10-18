@@ -81,23 +81,39 @@ async function loadIcalSchedule(){
       if(!events.length) throw new Error(`Ingen kampe fundet i kalenderen for ${calendar.teamId}`);
       return events;
     });
-    const byTeam = results.flat().reduce((acc, m) => {
-  (acc[m.teamId] ||= []).push(m);
-  return acc;
-}, Object.create(null));
-    Object.values(byTeam).forEach(list=>list.sort((a,b)=>a._sort-b._sort));
-    const maxRounds=Math.max(...Object.values(byTeam).map(list=>list.length));
-    const rounds=[];
-    for(let i=0;i<maxRounds;i++){
-      const matches=[];
-      for(const feed of ICAL_FEEDS){
-        const m=byTeam[feed.teamId]?.[i];
-        if(m){const {_sort,...clean}=m;matches.push(clean);}
-      }
-      rounds.push({round:i+1,matches});
+    // Saml alle kampe fra de syv kalendere og gruppér dem efter kalenderuge.
+    // Mandag er ugens start, så alle kampe i samme uge vises i samme runde.
+    const allMatches = results.flat().sort((a, b) => a._sort - b._sort);
+    const weeks = new Map();
+
+    for (const match of allMatches) {
+      const [day, month, year] = match.date.split("-").map(Number);
+      const localDate = new Date(year, month - 1, day);
+      const weekdayFromMonday = (localDate.getDay() + 6) % 7;
+      localDate.setDate(localDate.getDate() - weekdayFromMonday);
+
+      const weekKey = [
+        localDate.getFullYear(),
+        String(localDate.getMonth() + 1).padStart(2, "0"),
+        String(localDate.getDate()).padStart(2, "0")
+      ].join("-");
+
+      if (!weeks.has(weekKey)) weeks.set(weekKey, []);
+      weeks.get(weekKey).push(match);
     }
-    if(!rounds.length) throw new Error("iCal-kalenderne indeholdt ingen kampe");
-    DATA.rounds=rounds;
+
+    const rounds = [...weeks.entries()]
+      .sort(([weekA], [weekB]) => weekA.localeCompare(weekB))
+      .map(([weekKey, matches], index) => ({
+        round: index + 1,
+        weekStart: weekKey,
+        matches: matches
+          .sort((a, b) => a._sort - b._sort)
+          .map(({ _sort, ...match }) => match)
+      }));
+
+    if (!rounds.length) throw new Error("iCal-kalenderne indeholdt ingen kampe");
+    DATA.rounds = rounds;
     window.__ICAL_SCHEDULE_LOADED__=true;
     console.info(`iCal-kampprogram indlæst: ${results.flat().length} kampe`);
   }catch(error){
