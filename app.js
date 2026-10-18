@@ -112,6 +112,26 @@ async function loadIcalSchedule(){
           .map(({ _sort, ...match }) => match)
       }));
 
+    // Særlig undtagelse: Hold 3's kamp den 7. oktober skal ligge i runde 2,
+    // selv om den falder i en anden kalenderuge.
+    const hold3October7 = [];
+    for (const round of rounds) {
+      round.matches = round.matches.filter(match => {
+        const isSpecialMatch = match.teamId === "hold3" && match.date === "07-10-2026";
+        if (isSpecialMatch) hold3October7.push(match);
+        return !isSpecialMatch;
+      });
+    }
+    if (rounds.length >= 2 && hold3October7.length) {
+      rounds[1].matches.push(...hold3October7);
+      rounds[1].matches.sort((a, b) => {
+        const [ad, am, ay] = a.date.split("-").map(Number);
+        const [bd, bm, by] = b.date.split("-").map(Number);
+        return new Date(ay, am - 1, ad) - new Date(by, bm - 1, bd)
+          || String(a.time || "").localeCompare(String(b.time || ""));
+      });
+    }
+
     if (!rounds.length) throw new Error("iCal-kalenderne indeholdt ingen kampe");
     DATA.rounds = rounds;
     window.__ICAL_SCHEDULE_LOADED__=true;
