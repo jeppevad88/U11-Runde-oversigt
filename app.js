@@ -132,6 +132,20 @@ async function loadIcalSchedule(){
       });
     }
 
+    // Slå de oprindelige runde 2 og 3 sammen til én runde 2.
+    // Kampene kan ligge i forskellige kalenderuger, men skal vises samlet.
+    if (rounds.length >= 3) {
+      rounds[1].matches.push(...rounds[2].matches);
+      rounds[1].matches.sort((a, b) => {
+        const [ad, am, ay] = a.date.split("-").map(Number);
+        const [bd, bm, by] = b.date.split("-").map(Number);
+        return new Date(ay, am - 1, ad) - new Date(by, bm - 1, bd)
+          || String(a.time || "").localeCompare(String(b.time || ""));
+      });
+      rounds.splice(2, 1);
+      rounds.forEach((round, index) => { round.round = index + 1; });
+    }
+
     if (!rounds.length) throw new Error("iCal-kalenderne indeholdt ingen kampe");
     DATA.rounds = rounds;
     window.__ICAL_SCHEDULE_LOADED__=true;
@@ -189,15 +203,17 @@ const $ = (sel) => document.querySelector(sel);
 
 function rosterKey(round, teamId){ return `${round}-${teamId}`; }
 
-function baseRoster(teamId){
+function baseRoster(teamId, roundNo=1){
   const team = teamMap[teamId];
-  return [...team.players.map(p => ({playerId:p.id,name:p.name,originalTeamId:teamId,kind:"fast"})),
-          ...Array.from({length:Math.max(0,8-team.players.length)},()=>null)];
+  // Lauge De Fries er først fast på Hold 3 fra runde 3.
+  const players = team.players.filter(p => !(teamId === "hold3" && p.id === "p48" && roundNo < 3));
+  return [...players.map(p => ({playerId:p.id,name:p.name,originalTeamId:teamId,kind:"fast"})),
+          ...Array.from({length:Math.max(0,8-players.length)},()=>null)];
 }
 
 function cloneRoster(arr){ return arr.map(x => x ? {...x} : null); }
 
-function normalizeStored(value, teamId){
+function normalizeStored(value, teamId, roundNo=1){
   // Backwards compatible with the old database format, where `players` was just an array.
   let slots = Array.isArray(value) ? value : (value && Array.isArray(value.slots) ? value.slots : []);
   let absences = Array.isArray(value && value.absences) ? value.absences : [];
@@ -207,6 +223,35 @@ function normalizeStored(value, teamId){
   slots = slots.filter(x => !(teamId === "hold5" && x && x.playerId === "p33" && x.kind !== "loan"));
   slots = slots.slice(0,8).map(x => x && x.playerId ? x : null);
   while(slots.length < 8) slots.push(null);
+
+  // Lauge De Fries (p48) er først fast på Hold 3 fra runde 3.
+  // I runde 1 og 2 fjernes han uden at overskrive tidligere lånespillere.
+  if (teamId === "hold3" && roundNo < 3) {
+    slots = slots.filter(x => !(x && x.playerId === "p48"));
+    while (slots.length < 8) slots.push(null);
+    slots = slots.slice(0,8);
+  } else if (teamId === "hold3" && playerMap["p48"] && !slots.some(x => x && x.playerId === "p48")) {
+    const emptySlot = slots.findIndex(x => !x);
+    if (emptySlot >= 0) {
+      slots[emptySlot] = {
+        playerId: "p48",
+        name: playerMap["p48"].name,
+        originalTeamId: "hold3",
+        kind: "fast"
+      };
+    } else {
+      // Fra runde 3 prioriteres den faste spiller frem for en låneplads.
+      const loanSlot = slots.map((x, i) => x && x.kind === "loan" ? i : -1).filter(i => i >= 0).pop();
+      if (loanSlot !== undefined) {
+        slots[loanSlot] = {
+          playerId: "p48",
+          name: playerMap["p48"].name,
+          originalTeamId: "hold3",
+          kind: "fast"
+        };
+      }
+    }
+  }
 
   // Clean old/duplicate absence entries and never show an absence for someone currently on the team.
   const currentIds = new Set(slots.filter(Boolean).map(x => x.playerId));
@@ -219,7 +264,7 @@ function normalizeStored(value, teamId){
 
 function getState(round, teamId){
   const key=rosterKey(round,teamId);
-  if(!rosterState[key]) rosterState[key]={slots:baseRoster(teamId),absences:[]};
+  if(!rosterState[key]) rosterState[key]={slots:baseRoster(teamId,round),absences:[]};
   return rosterState[key];
 }
 
@@ -254,7 +299,7 @@ function initializeBaseRosters(){
   for(const r of DATA.rounds){
     for(const m of r.matches){
       const key=rosterKey(r.round,m.teamId);
-      if(!rosterState[key]) rosterState[key]={slots:baseRoster(m.teamId),absences:[]};
+      if(!rosterState[key]) rosterState[key]={slots:baseRoster(m.teamId,r.round),absences:[]};
     }
   }
 }
@@ -276,7 +321,7 @@ function applyStoredState(state){
   for(const [key,value] of Object.entries(rounds)){
     const parts=key.split("-");
     const teamId=parts.slice(1).join("-");
-    rosterState[key]=normalizeStored(value,teamId);
+    rosterState[key]=normalizeStored(value,teamId,Number(parts[0]));
   }
   initializeBaseRosters();
 }
@@ -317,7 +362,7 @@ async function loadAll(){
       rosterState = Object.fromEntries(Object.entries(saved).map(([k,v])=>{
         const parts=k.split("-");
         const teamId=parts.slice(1).join("-");
-        return [k,normalizeStored(v,teamId)];
+        return [k,normalizeStored(v,teamId,Number(parts[0]))];
       }));
     }catch{}
     initializeBaseRosters();
