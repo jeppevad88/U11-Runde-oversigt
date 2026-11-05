@@ -206,7 +206,15 @@ function rosterKey(round, teamId){ return `${round}-${teamId}`; }
 function baseRoster(teamId, roundNo=1){
   const team = teamMap[teamId];
   // Lauge De Fries er først fast på Hold 3 fra runde 3.
-  const players = team.players.filter(p => !(teamId === "hold3" && p.id === "p48" && roundNo < 3));
+  let players = team.players.filter(p => !(teamId === "hold3" && p.id === "p48" && roundNo < 3));
+  // Fra runde 5 byttes Bertil (p25) og Lucas B. (p34) permanent rundt.
+  if(roundNo >= 5 && teamId === "hold4"){
+    players = players.filter(p => p.id !== "p25");
+    players.push(playerMap["p34"]);
+  }else if(roundNo >= 5 && teamId === "hold5"){
+    players = players.filter(p => p.id !== "p34");
+    players.push(playerMap["p25"]);
+  }
   return [...players.map(p => ({playerId:p.id,name:p.name,originalTeamId:teamId,kind:"fast"})),
           ...Array.from({length:Math.max(0,8-players.length)},()=>null)];
 }
@@ -251,6 +259,16 @@ function normalizeStored(value, teamId, roundNo=1){
         };
       }
     }
+  }
+
+  // Fra runde 5 byttes Bertil (p25) og Lucas B. (p34).
+  // Ændringen gælder kun fremtidige runder og bevarer deres plads i holdlisten.
+  if(roundNo >= 5 && teamId === "hold4"){
+    slots = slots.map(x => x && x.playerId === "p25" && x.kind !== "loan"
+      ? {playerId:"p34",name:playerMap["p34"].name,originalTeamId:"hold4",kind:"fast"} : x);
+  }else if(roundNo >= 5 && teamId === "hold5"){
+    slots = slots.map(x => x && x.playerId === "p34" && x.kind !== "loan"
+      ? {playerId:"p25",name:playerMap["p25"].name,originalTeamId:"hold5",kind:"fast"} : x);
   }
 
   // Clean old/duplicate absence entries and never show an absence for someone currently on the team.
@@ -525,7 +543,13 @@ function availablePlayers(teamId){
   return Object.values(playerMap)
     .filter(p=>!currentIds.has(p.id))
     .sort((a,b)=>a.name.localeCompare(b.name,'da'))
-    .map(p=>({...p,usedOn:usedElsewhere.get(p.id)||[]}));
+    .map(p=>({
+      ...p,
+      originalTeamId: currentRound >= 5
+        ? (p.id === "p25" ? "hold5" : p.id === "p34" ? "hold4" : p.originalTeamId)
+        : p.originalTeamId,
+      usedOn:usedElsewhere.get(p.id)||[]
+    }));
 }
 
 function openPlayerModal(teamId,slot){
@@ -548,10 +572,13 @@ function openPlayerModal(teamId,slot){
     const id=modal.querySelector("#loanSelect").value;
     if(!id) return;
     const p=playerMap[id];
+    const effectiveOriginalTeamId = currentRound >= 5
+      ? (p.id === "p25" ? "hold5" : p.id === "p34" ? "hold4" : p.originalTeamId)
+      : p.originalTeamId;
     const roster=getRoster(currentRound,teamId);
     const target=slot>=0 && !roster[slot] ? slot : roster.findIndex(x=>!x);
     if(target<0){toast("Holdet har allerede 8 spillere");return}
-    roster[target]={playerId:p.id,name:p.name,originalTeamId:p.originalTeamId,kind:p.originalTeamId===teamId?"fast":"loan"};
+    roster[target]={playerId:p.id,name:p.name,originalTeamId:effectiveOriginalTeamId,kind:effectiveOriginalTeamId===teamId?"fast":"loan"};
     removeAbsence(currentRound,teamId,p.id);
     modal.remove();
     renderRound(); renderTabs();
